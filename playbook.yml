@@ -1,0 +1,103 @@
+---
+- hosts: "{{ host | default('all')}}"
+# above defaults to all hosts.
+# to specify a host group, add this to cmd line --extra-vars 'host=web'
+
+  tasks:
+  - name: "Check ulimits nofile"
+    pam_limits: domain=* limit_type=- limit_item=nofile value=32768 use_min=true backup=yes
+
+  - name: "Check ulimits nproc"
+    pam_limits: domain=* limit_type=- limit_item=nproc value=65536 use_min=true backup=yes
+
+
+
+  - name: Disable Transparent Hugepages (boot time) /etc/rc.local
+    blockinfile:
+      dest: /etc/rc.local
+      create: yes
+      backup: yes
+      block: |
+        if test -f /sys/kernel/mm/transparent_hugepage/enabled; then
+          echo never > /sys/kernel/mm/transparent_hugepage/enabled;
+        fi;
+        if test -f /sys/kernel/mm/transparent_hugepage/defrag; then
+          echo never > /sys/kernel/mm/transparent_hugepage/defrag;
+        fi;
+
+  - name: Disable Transparent Hugepages (runtime)
+    shell: if test -f /sys/kernel/mm/transparent_hugepage/enabled; then echo never > /sys/kernel/mm/transparent_hugepage/enabled; fi; if test -f /sys/kernel/mm/transparent_hugepage/defrag; then echo never > /sys/kernel/mm/transparent_hugepage/defrag; fi;
+
+
+  - name: Ensure that perl is installed
+    yum:
+      name: perl
+      state: present
+
+  - name: Ensure that net-tools is installed
+    yum:
+      name: net-tools
+      state: present
+
+  #- debug: msg="The IPv4 address for example.com. is {{ lookup('dig', 'google.com.')}}"
+
+
+  ## ntpd time sync
+  - name: Ensure that ntp is installed
+    yum:
+      name: ntp
+      state: present
+
+  - name: ensure that ntp is started
+    service:
+      name: ntpd
+      state: started
+      enabled: yes
+
+
+
+  ## CHECK SELInux
+  - name: Fetch SELinux state
+    shell: getenforce
+    register: selinux_status
+
+  - name: Verify SELinx
+    selinux: state=disabled
+
+    #- name: Check SELinux. actual is {{selinux_status.stdout}}
+    #assert:
+    #  that: (selinux_status.stdout == "Disabled") or
+    #        (selinux_status.stdout == "Permissive")
+
+
+
+  ## Firewall disabled (iptables or firewalld)
+  - name: stop iptables
+    service: name=firewalld state=stopped
+    ignore_errors: True
+
+  - name: disable on iptable on boot
+    service: name=firewalld enabled=no
+    ignore_errors: True
+
+  - name: Copy host file
+    copy:
+       src: ./hostfile
+       dest: /etc/hosts
+
+  - name: Copy ambari.repo to all
+    copy:
+       src: ./ambari.repo
+       dest: /etc/yum.repos.d/ambari.repo
+
+  - name: Install ambari-agent on all
+    yum:
+      name: ambari-agent
+      state: present
+
+- hosts: ambari-server
+  tasks:
+  - name: Install ambari-server 
+    yum:
+      name: ambari-server
+      state: present
