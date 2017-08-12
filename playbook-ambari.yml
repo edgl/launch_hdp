@@ -1,7 +1,0 @@
----
-- hosts: all
-  tasks:
-  - name: install ambari agent
-    yum: 
-      name: ambari-agent
-      state: present

@@ -1,10 +1,12 @@
 [all]
-hdphost1 ansible_host=34.229.147.103
-hdphost2 ansible_host=54.85.43.145
-hdphost3 ansible_host=34.229.20.134
+hdphost1 ansible_host=52.55.172.63
+hdphost2 ansible_host=54.226.190.64
+hdphost3 ansible_host=54.204.232.237
+hdphost4 ansible_host=34.201.151.185
+hdphost5 ansible_host=54.87.144.163
 
 [ambari-server]
-hdphost1 ansible_host=34.229.147.103
+hdphost1 ansible_host=52.55.172.63
 
 [all:vars]
 ansible_ssh_private_key_file=/Users/egleeck/amazon_keypairs/hdp_demo.pem

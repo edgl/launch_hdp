@@ -1,3 +1,4 @@
+# vim:ft=ansible:
 ---
 - hosts: "{{ host | default('all')}}"
 # above defaults to all hosts.
@@ -9,8 +10,6 @@
 
   - name: "Check ulimits nproc"
     pam_limits: domain=* limit_type=- limit_item=nproc value=65536 use_min=true backup=yes
-
-
 
   - name: Disable Transparent Hugepages (boot time) /etc/rc.local
     blockinfile:
@@ -29,10 +28,10 @@
     shell: if test -f /sys/kernel/mm/transparent_hugepage/enabled; then echo never > /sys/kernel/mm/transparent_hugepage/enabled; fi; if test -f /sys/kernel/mm/transparent_hugepage/defrag; then echo never > /sys/kernel/mm/transparent_hugepage/defrag; fi;
 
 
-  - name: Ensure that perl is installed
-    yum:
-      name: perl
-      state: present
+  #- name: Ensure that perl is installed
+  #  yum:
+  #    name: perl
+  #    state: present
 
   - name: Ensure that net-tools is installed
     yum:
@@ -80,20 +79,29 @@
     service: name=firewalld enabled=no
     ignore_errors: True
 
-  - name: Copy host file
-    copy:
-       src: ./hostfile
-       dest: /etc/hosts
+  #- name: Copy host file
+  #  copy:
+  #     src: ./hostfile
+  #     dest: /etc/hosts
+
+  #- name: Reset hostname
+  #  shell: hostname `hostname -A`
 
   - name: Copy ambari.repo to all
     copy:
        src: ./ambari.repo
        dest: /etc/yum.repos.d/ambari.repo
 
+  - name: Copy hdp.repo to all
+    copy:
+       src: ./hdp-2.6.0.repo
+       dest: /etc/yum.repos.d/hdp.repo
+
   - name: Install ambari-agent on all
     yum:
       name: ambari-agent
       state: present
+   
 
 - hosts: ambari-server
   tasks:
@@ -101,3 +109,9 @@
     yum:
       name: ambari-server
       state: present
+      
+  - name: Setup ambari server
+    shell: ambari-server setup -s
+    
+  - name: Start the ambari server
+    shell: ambari-server start

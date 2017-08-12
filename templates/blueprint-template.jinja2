@@ -1,0 +1,16 @@
+{
+  "blueprint" : "myclusterbp",
+  "default_password" : "admin",
+  "host_groups" :[
+  {% for fqdn, ips in hosts.items() %}
+    {
+      "name" : "host{{ loop.index }}",
+      "hosts" : [
+        {
+          "fqdn" : "{{ fqdn }}"
+        }
+      ]
+    }{% if not loop.last %},{% endif %}
+  {% endfor %}
+  ]
+}

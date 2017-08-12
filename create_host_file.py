@@ -25,37 +25,20 @@
 ####################################################################
 
 import sys
-import subprocess
-from subprocess import Popen
-import json
+from utils import get_hosts
 
 class HostFile:
     
     HOST_OUTPUT = "./hostfile"
     ANSIBLE_INVENTORY = "./inventory"
-    aws_command = ["aws", "ec2", "describe-instances"]
     output = []
     private_ips = []
     public_ips = []
     def main(self):
-        proc = Popen(self.aws_command, stdout=subprocess.PIPE)
-
-        while True:
-            line = proc.stdout.readline()
-            if line != ''.encode():
-                self.output.append(line)
-            if proc.poll() != None:
-                break;
-
-        j = json.loads(' '.encode().join(self.output), encoding='utf-8') 
-        
-        for item in j['Reservations']:
-            for inst in item['Instances']:
-                if inst['State']['Name'] in ('running', 'pending'):
-                   self.private_ips.append({'ip':inst['PrivateIpAddress'],'host':inst['PrivateDnsName']})
-                   self.public_ips.append({'ip':inst['PublicIpAddress'],'host':inst['PrivateDnsName']})
-
-        #print(self.private_ips)
+        hosts = get_hosts(False)
+        for host, ips in hosts.items():
+            self.private_ips.append({'ip':ips['private_ip'],'host':host})
+            self.public_ips.append({'ip':ips['public_ip'],'host':host})
 
         # push the first entry
         self.private_ips.insert(0, {'ip': '127.0.0.1', 'host': 'localhost'})
@@ -92,5 +75,3 @@ class HostFile:
 if __name__ == '__main__':
     hf = HostFile()
     hf.main()
-
-

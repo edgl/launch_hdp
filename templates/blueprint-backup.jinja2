@@ -1,0 +1,131 @@
+{
+  "configurations": [
+  { "core-site": {
+      "properties" : {
+        "fs.defaultFS" : "hdfs://mycluster",
+        "ha.zookeeper.quorum" : "%HOSTGROUP::host1%:2181,%HOSTGROUP::host2%:2181,%HOSTGROUP::host3%:2181"
+    }}
+  },
+  { "hdfs-site": {
+      "properties" : {
+        "dfs.client.failover.proxy.provider.mycluster" : "org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider",
+        "dfs.ha.automatic-failover.enabled" : "true",
+        "dfs.ha.fencing.methods" : "shell(/bin/true)",
+        "dfs.ha.namenodes.mycluster" : "nn1,nn2",
+        "dfs.namenode.http-address" : "%HOSTGROUP::host1%:50070",
+        "dfs.namenode.http-address.mycluster.nn1" : "%HOSTGROUP::host1%:50070",
+        "dfs.namenode.http-address.mycluster.nn2" : "%HOSTGROUP::host2%:50070",
+        "dfs.namenode.https-address" : "%HOSTGROUP::master0%:50470",
+        "dfs.namenode.https-address.mycluster.nn1" : "%HOSTGROUP::host1%:50470",
+        "dfs.namenode.https-address.mycluster.nn2" : "%HOSTGROUP::host2%:50470",
+        "dfs.namenode.rpc-address.mycluster.nn1" : "%HOSTGROUP::host1%:8020",
+        "dfs.namenode.rpc-address.mycluster.nn2" : "%HOSTGROUP::host2%:8020",
+        "dfs.namenode.shared.edits.dir" : "qjournal://%HOSTGROUP::host1%:8485;%HOSTGROUP::host2%:8485;%HOSTGROUP::host3%:8485/mycluster",
+        "dfs.nameservices" : "mycluster"
+    }}
+  }
+],
+  "host_groups" : [
+    {
+      "name" : "host1",
+      "components" : [
+        {
+          "name" : "NAMENODE"
+        },
+        {
+          "name" : "ZOOKEEPER_SERVER"
+        },
+        {
+          "name" : "ZKFC"
+        },
+        {
+          "name" : "JOURNALNODE"
+        }
+      ],
+      "cardinality" : "1"
+    },
+    {
+      "name" : "host2",
+      "components" : [
+        {
+          "name" : "NAMENODE"
+        },
+        {
+          "name" : "RESOURCEMANAGER"
+        },
+        {
+          "name" : "APP_TIMELINE_SERVER"
+        },
+        {
+          "name" : "HISTORYSERVER"
+        },
+        {
+          "name" : "ZOOKEEPER_SERVER"
+        },
+        {
+          "name" : "ZKFC"
+        },
+        {
+          "name" : "JOURNALNODE"
+        }
+      ],
+      "cardinality" : "1"
+    },
+    {
+      "name" : "host3",
+      "components" : [
+        {
+          "name" : "ZOOKEEPER_SERVER"
+        },
+        {
+          "name" : "JOURNALNODE"
+        }
+      ],
+      "cardinality" : "1"
+    },
+    {
+      "name" : "host4",
+      "components" : [
+        {
+          "name" : "HBASE_MASTER"
+        },
+        {
+          "name" : "HBASE_CLIENT"
+        }
+      ],
+      "cardinality" : "1"
+    },
+    {
+      "name" : "host5",
+      "components" : [
+        {
+          "name" : "DATANODE"
+        },
+        {
+          "name" : "HDFS_CLIENT"
+        },
+        {
+          "name" : "HBASE_REGIONSERVER"
+        },
+        {
+          "name" : "NODEMANAGER"
+        },
+        {
+          "name" : "YARN_CLIENT"
+        },
+        {
+          "name" : "MAPREDUCE2_CLIENT"
+        },
+        {
+          "name" : "ZOOKEEPER_CLIENT"
+        }
+      ],
+      "cardinality" : "1"
+    }
+  ],
+  "Blueprints" : {
+    "blueprint_name" : "mycluster",
+    "stack_name" : "HDP",
+    "stack_version" : "2.6.0"
+  }
+}
